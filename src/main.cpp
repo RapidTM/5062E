@@ -7,8 +7,14 @@ pros::Controller controller(pros::E_CONTROLLER_MASTER);
 // motor groups
 pros::MotorGroup left_motors({-5, -6, -7},
                             pros::MotorGearset::blue); // left motor group - ports 3 (reversed), 4, 5 (reversed)
-pros::MotorGroup right_motors({10, 16, 14},
+pros::MotorGroup right_motors({10, 16, 18},
 							 pros::MotorGearset::blue); // right motor group - ports 6, 7, 9 (reversed)
+
+
+pros::Motor intake(13, pros::MotorGearset::blue);
+pros::MotorGroup lift({14, -2}, pros::MotorGearset::blue); // lift motor group - ports 14, 2 (reversed)
+pros::Motor claw(8, pros::MotorGearset::blue); // claw motor - port 8
+pros::Motor wrist(9, pros::MotorGearset::blue); // wrist motor - port 9
 
 // Inertial Sensor on port 1
 pros::Imu imu(1);
@@ -174,5 +180,38 @@ void opcontrol() {
         chassis.arcade(leftY, rightX);
         // delay to save resources
         pros::delay(10);
+
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {
+            intake.move(127);
+        } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
+            intake.move(-127);
+        } else {
+            intake.move(0);
+        }
+
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
+            lift.move(127);
+        } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
+            lift.move(-127);
+        } else {
+            lift.move(0);
+        }
+
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_A)) {
+            claw.move(127);
+        } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_B)) {
+            claw.move(-127);
+        } else {
+            claw.move(0);
+        }
+
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_UP)) {
+            wrist.move(127);
+        } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN)) {
+            wrist.move(-127);
+        } else {
+            wrist.move(0);
+        }
+
     }
 }
