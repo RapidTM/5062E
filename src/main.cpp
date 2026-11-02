@@ -5,13 +5,13 @@
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
 // motor groups
-pros::MotorGroup left_motors({-5, 4, -3},
+pros::MotorGroup left_motors({-5, 6, -7},
                             pros::MotorGearset::blue); // left motor group - ports 3 (reversed), 4, 5 (reversed)
-pros::MotorGroup right_motors({6, -9, 7},
+pros::MotorGroup right_motors({10, -16, 14},
 							 pros::MotorGearset::blue); // right motor group - ports 6, 7, 9 (reversed)
 
 // Inertial Sensor on port 10
-pros::Imu imu(10);
+pros::Imu imu(1);
 
 // tracking wheels
 // horizontal tracking wheel encoder. Rotation sensor, port 20, not reversed
@@ -27,7 +27,7 @@ lemlib::TrackingWheel vertical(&verticalEnc, lemlib::Omniwheel::NEW_275, -2.5);
 lemlib::Drivetrain drivetrain(&left_motors, // left motor group
                               &right_motors, // right motor group
                               10.75, // 10 inch track width
-                              lemlib::Omniwheel::NEW_4, // using new 4" omnis
+                              lemlib::Omniwheel::NEW_325, // using new 4" omnis
                               450, // drivetrain rpm is 360
                               2 // horizontal drift is 2. If we had traction wheels, it would have been 8
 );
