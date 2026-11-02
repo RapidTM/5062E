@@ -45,3 +45,18 @@ TEMPLATE_FILES=$(INCDIR)/$(LIBNAME)/*.h $(INCDIR)/$(LIBNAME)/*.hpp
 ################################################################################
 ########## Nothing below this line should be edited by typical users ###########
 -include ./common.mk
+
+LEMLIB_TARBALL_SOURCE := libsrc/LemLibTarball.cpp
+LEMLIB_TARBALL_OBJECT := $(BINDIR)/LemLibTarball.cpp.o
+LEMLIB_TARBALL_DEPENDENCY := $(DEPDIR)/LemLibTarball.cpp.d
+LEMLIB_TARBALL_ARCHIVE := $(FWDIR)/LemLibTarball.a
+
+$(LEMLIB_TARBALL_OBJECT): $(LEMLIB_TARBALL_SOURCE)
+	$(VV)mkdir -p $(BINDIR) $(DEPDIR)
+	$(CXX) -c $(CXXFLAGS) $(EXTRA_CXXFLAGS) -I$(INCDIR) -MMD -MP -MF $(LEMLIB_TARBALL_DEPENDENCY) -MT $@ -o $@ $<
+
+$(LEMLIB_TARBALL_ARCHIVE): $(LEMLIB_TARBALL_OBJECT)
+	$(RM) $@
+	$(AR) rcs $@ $<
+
+-include $(LEMLIB_TARBALL_DEPENDENCY)

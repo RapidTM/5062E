@@ -5,19 +5,19 @@
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
 // motor groups
-pros::MotorGroup left_motors({-5, 6, -7},
+pros::MotorGroup left_motors({-5, -6, -7},
                             pros::MotorGearset::blue); // left motor group - ports 3 (reversed), 4, 5 (reversed)
-pros::MotorGroup right_motors({10, -16, 14},
+pros::MotorGroup right_motors({10, 16, 14},
 							 pros::MotorGearset::blue); // right motor group - ports 6, 7, 9 (reversed)
 
-// Inertial Sensor on port 10
+// Inertial Sensor on port 1
 pros::Imu imu(1);
 
 // tracking wheels
-// horizontal tracking wheel encoder. Rotation sensor, port 20, not reversed
-pros::Rotation horizontalEnc(20);
-// vertical tracking wheel encoder. Rotation sensor, port 11, reversed
-pros::Rotation verticalEnc(-11);
+// horizontal tracking wheel encoder. Rotation sensor, port 11, not reversed
+pros::Rotation horizontalEnc(11);
+// vertical tracking wheel encoder. Rotation sensor, port 12, not reversed
+pros::Rotation verticalEnc(12);
 // horizontal tracking wheel. 2.75" diameter, 5.75" offset, back of the robot (negative)
 lemlib::TrackingWheel horizontal(&horizontalEnc, lemlib::Omniwheel::NEW_275, -5.75);
 // vertical tracking wheel. 2.75" diameter, 2.5" offset, left of the robot (negative)
@@ -124,7 +124,7 @@ void competition_initialize() {}
 
 // get a path used for pure pursuit
 // this needs to be put outside a function
-ASSET(example_txt); // '.' replaced with "_" to make c++ happy
+ASSET(robot_path_txt); // '.' replaced with "_" to make c++ happy
 
 /**
  * Runs during auto
@@ -149,7 +149,7 @@ void autonomous() {
     // Follow the path in path.txt. Lookahead at 15, Timeout set to 4000
     // following the path with the back of the robot (forwards = false)
     // see line 116 to see how to define a path
-    chassis.follow(example_txt, 15, 4000, false);
+    chassis.follow(robot_path_txt, 15, 4000, false);
     // wait until the chassis has traveled 10 inches. Otherwise the code directly after
     // the movement will run immediately
     // Unless its another movement, in which case it will wait
