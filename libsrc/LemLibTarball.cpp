@@ -15,6 +15,7 @@ Decoder::Decoder(const asset& tarball) {
 
     while ((delimiter_pos = tarball_str.find('\n', pos)) != std::string::npos) {
         std::string line = tarball_str.substr(pos, delimiter_pos - pos);
+        if (!line.empty() && line.back() == '\r') { line.pop_back(); }
 
         if (line.starts_with("#") && recording_path) {
             std::size_t path_content_end = pos;
