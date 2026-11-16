@@ -7,7 +7,7 @@ pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
 // motor groups
 pros::MotorGroup
-    left_motors({-5, -6, -7},
+    left_motors({-5, -20, -7},
                 pros::MotorGearset::blue); // left motor group - ports 3
                                            // (reversed), 4, 5 (reversed)
 pros::MotorGroup right_motors(
@@ -19,7 +19,7 @@ pros::MotorGroup
     lift({3, -2},
          pros::MotorGearset::blue); // lift motor group - ports 3, 2 (reversed)
 pros::Motor claw(8, pros::MotorGearset::blue);  // claw motor - port 8
-pros::Motor wrist(9, pros::MotorGearset::blue); // wrist motor - port 9
+pros::Motor wrist(19, pros::MotorGearset::blue); // wrist motor - port 9
 
 // extra encoder on lift
 pros::Rotation liftEnc(4);
@@ -187,6 +187,12 @@ void autonomous() {
  */
 void opcontrol() {
   liftEnc.reset_position();
+  lift.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+  wrist.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+
+  bool clawOn = false;
+  bool clawReversed = false;
+
   // controller
   // loop to continuously update motors
   while (true) {
@@ -212,36 +218,37 @@ void opcontrol() {
     } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2) and
                liftEnc.get_position() > 30000) {
       lift.move(-60);
+    } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT) and
+        liftEnc.get_position() < 216000) {
+      lift.move(127);
+    } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT) and
+        liftEnc.get_position() > 30000) {
+      lift.move(-127);
     } else {
-      lift.brake();
-      lift.move(0);
+      lift.move_velocity(0);
     }
 
-    if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_A)) {
+    if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A)) {
+      clawOn = !clawOn;
+    } else if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)) {
+      clawReversed = !clawReversed;
+    }
+
+    if (clawOn && !clawReversed) {
       claw.move(127);
-    } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_B)) {
+    } else if (clawOn && clawReversed) {
       claw.move(-127);
     } else {
       claw.move(0);
     }
 
     if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_UP)) {
-      wrist.move(127);
+      wrist.move(60);
     } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN)) {
-      wrist.move(-127);
+      wrist.move(-60);
     } else {
-      wrist.move(0);
+      wrist.move_velocity(0);
     }
 
-    /*if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT) and
-        liftEnc.get_position() < 216000) {
-      lift.move(127);
-    } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT) and
-               liftEnc.get_position() > 30000) {
-      lift.move(-127);
-    } else {
-      lift.move(0);
-      lift.brake();
-    }*/
   }
 }
