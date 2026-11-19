@@ -54,7 +54,7 @@ lemlib::Drivetrain drivetrain(
 lemlib::ControllerSettings
     linearController(10,  // proportional gain (kP)
                      0,   // integral gain (kI)
-                     3,   // derivative gain (kD)
+                     5,   // derivative gain (kD)
                      3,   // anti windup
                      1,   // small error range, in inches
                      100, // small error range timeout, in milliseconds
@@ -153,7 +153,7 @@ void competition_initialize() {}
 // get a path used for pure pursuit
 // this needs to be put outside a function
 ASSET(project_example_txt);
-
+//lemlib_tarball::Decoder decoder(my_paths_txt);
 /**
  * Runs during auto
  *
@@ -161,25 +161,31 @@ ASSET(project_example_txt);
  * features LemLib has to offer
  */
 void autonomous() {
-  pros::lcd::print(3, "Autonomous started");
 
-  /*lemlib_tarball::Decoder pathDecoder(my_lemlib_tarball_file_txt);
-  if (!pathDecoder.has("Path")) {
-      lemlib::infoSink()->error("Tarball does not contain path: Path");
-      return;
-  }*/
+    pros::lcd::print(4, "Autonomous started...");
 
-  chassis.setPose(-61, -51, 23);
+    //set assembly motors to lock position when not moving
+    wrist.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+    lift.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
-  chassis.turnToPoint(-50.5, -28, 1000);
-  chassis.moveToPoint(-50.5, -24, 4000);
 
-  /*chassis.turnToPoint(24, 24, 1000);
-  chassis.moveToPoint(24, 24, 4000);*/
+    chassis.setPose(-60, -59, 270);
+
+    chassis.moveToPoint(-48, -59, 4000, {.forwards = false, .maxSpeed = 70});
+
+    chassis.turnToPoint(-48, -32, 1000, {.forwards = false, .maxSpeed = 70});
+    chassis.moveToPoint(-48, -32, 4000, {.forwards = false, .maxSpeed = 70});
+
+    wrist.move_relative(800, 127); // decadegrees (1/10th of a degree)
+
+    claw.move_relative(-1000, 127); // decadegrees (1/10th of a degree)
+
+
+
 
   // wait until the movement is done
   chassis.waitUntilDone();
-  pros::lcd::print(4, "Autonomous finished!");
+  pros::lcd::print(5, "Autonomous finished!");
 }
 
 /**
@@ -189,9 +195,10 @@ void opcontrol() {
   liftEnc.reset_position();
   lift.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
   wrist.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+  wrist.tare_position();
 
-  bool clawOn = false;
-  bool clawReversed = false;
+  bool clawFwd = false;
+  bool clawRev = false;
 
   // controller
   // loop to continuously update motors
@@ -205,38 +212,48 @@ void opcontrol() {
     pros::delay(10);
 
     if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {
-      intake.move(127);
+      intake.move(85);
     } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
-      intake.move(-127);
+      intake.move(-85);
     } else {
       intake.move(0);
     }
 
     if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1) and
-        liftEnc.get_position() < 216000) {
+        liftEnc.get_position() < 200000) {
       lift.move(60);
     } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2) and
-               liftEnc.get_position() > 30000) {
+               liftEnc.get_position() > 200) {
       lift.move(-60);
     } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT) and
-        liftEnc.get_position() < 216000) {
+        liftEnc.get_position() < 200000) {
       lift.move(127);
     } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT) and
-        liftEnc.get_position() > 30000) {
+        liftEnc.get_position() > 200) {
       lift.move(-127);
     } else {
       lift.move_velocity(0);
     }
 
     if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A)) {
-      clawOn = !clawOn;
+        if (!clawFwd and !clawRev) {
+            clawFwd = true;
+        } else {
+            clawFwd = false;
+            clawRev = false;
+        }
     } else if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)) {
-      clawReversed = !clawReversed;
+        if (!clawFwd and !clawRev) {
+            clawRev = true;
+        } else {
+            clawFwd = false;
+            clawRev = false;
+        }
     }
 
-    if (clawOn && !clawReversed) {
+    if (clawFwd) {
       claw.move(127);
-    } else if (clawOn && clawReversed) {
+    } else if (clawRev) {
       claw.move(-127);
     } else {
       claw.move(0);
@@ -248,6 +265,19 @@ void opcontrol() {
       wrist.move(-60);
     } else {
       wrist.move_velocity(0);
+    }
+
+    if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_X)) {
+      while (liftEnc.get_position() < 17000) {
+        lift.move(90);
+        //pros::delay(200);
+        //wrist.move_absolute(0, 127);
+      }
+      while (liftEnc.get_position() > 17000) {
+        lift.move(-90);
+        //pros::delay(200);
+        //wrist.move_absolute(0, 127);
+      }
     }
 
   }
