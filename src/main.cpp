@@ -8,27 +8,27 @@ pros::Controller controller(pros::E_CONTROLLER_MASTER);
 // motor groups
 pros::MotorGroup
     left_motors({-5, -20, -7},
-                pros::MotorGearset::blue); // left motor group - ports 3
-                                           // (reversed), 4, 5 (reversed)
+                pros::MotorGearset::blue); // left motor group - ports 5
+                                           // (reversed), 20 (reversed), 7 (reversed)
 pros::MotorGroup right_motors(
     {10, 16, 18},
-    pros::MotorGearset::blue); // right motor group - ports 6, 7, 9 (reversed)
+    pros::MotorGearset::blue); // right motor group - ports 10, 16, 18
 
-pros::Motor intake(13, pros::MotorGearset::blue);
+pros::Motor intake(13, pros::MotorGearset::blue); // intake motor - port 13
 pros::MotorGroup
     lift({3, -2},
          pros::MotorGearset::blue); // lift motor group - ports 3, 2 (reversed)
 pros::Motor claw(8, pros::MotorGearset::blue);  // claw motor - port 8
-pros::Motor wrist(19, pros::MotorGearset::blue); // wrist motor - port 9
+pros::Motor wrist(19, pros::MotorGearset::blue); // wrist motor - port 19
 
-// extra encoder on lift
+// extra encoder on lift - port 4
 pros::Rotation liftEnc(4);
 
 // Inertial Sensor on port 1
 pros::Imu imu(1);
 
 // tracking wheels
-// horizontal tracking wheel encoder. Rotation sensor, port 11, not reversed
+// horizontal tracking wheel encoder. Rotation sensor, port 11, reversed
 pros::Rotation horizontalEnc(-11);
 // vertical tracking wheel encoder. Rotation sensor, port 12, not reversed
 pros::Rotation verticalEnc(12);
@@ -45,8 +45,8 @@ lemlib::Drivetrain drivetrain(
     &left_motors,               // left motor group
     &right_motors,              // right motor group
     10.75,                      // 10 inch track width
-    lemlib::Omniwheel::NEW_325, // using new 4" omnis
-    450,                        // drivetrain rpm is 360
+    lemlib::Omniwheel::NEW_325, // using new 3.25" omnis
+    450,                        // drivetrain rpm is 450
     2 // horizontal drift is 2. If we had traction wheels, it would have been 8
 );
 
@@ -130,7 +130,7 @@ void initialize() {
       pros::lcd::print(0, "X: %f", chassis.getPose().x);         // x
       pros::lcd::print(1, "Y: %f", chassis.getPose().y);         // y
       pros::lcd::print(2, "Theta: %f", chassis.getPose().theta); // heading
-      pros::lcd::print(3, "Lift: %d",
+      pros::lcd::print(3, "Lift: %d",                            // lift encoder position (centidegrees)
                        liftEnc.get_position()); // lift encoder position
       // log position telemetry
       lemlib::telemetrySink()->info("Chassis pose: {}", chassis.getPose());
@@ -153,7 +153,7 @@ void competition_initialize() {}
 // get a path used for pure pursuit
 // this needs to be put outside a function
 ASSET(project_example_txt);
-//lemlib_tarball::Decoder decoder(my_paths_txt);
+
 /**
  * Runs during auto
  *
@@ -162,25 +162,34 @@ ASSET(project_example_txt);
  */
 void autonomous() {
 
+    /**
+     * Alliance goal score (5pt)
+     * Start at -60, -59, 270
+     * Preload with alliance color facing the claw 
+     * (such that yellow will be oriented downwards)
+     */
+
     pros::lcd::print(4, "Autonomous started...");
 
     //set assembly motors to lock position when not moving
     wrist.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
     lift.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
-
+    //reset the pose of the robot to the known starting position
     chassis.setPose(-60, -59, 270);
 
+    //drive to -48, -59 backwards (heading is still 270 degrees) with speed limit 70
     chassis.moveToPoint(-48, -59, 4000, {.forwards = false, .maxSpeed = 70});
 
+    //turn towards, then drive to -48, -32 backwards (heading is still 270 degrees) with speed limit 70
     chassis.turnToPoint(-48, -32, 1000, {.forwards = false, .maxSpeed = 70});
     chassis.moveToPoint(-48, -32, 4000, {.forwards = false, .maxSpeed = 70});
 
-    wrist.move_relative(800, 127); // decadegrees (1/10th of a degree)
+    //move the wrist to goal position 800 (in decadegrees)
+    wrist.move_relative(800, 127);
 
-    claw.move_relative(-1000, 127); // decadegrees (1/10th of a degree)
-
-
+    //outtake preload pin 
+    claw.move_relative(-1000, 127);
 
 
   // wait until the movement is done
@@ -192,13 +201,16 @@ void autonomous() {
  * Runs in driver control
  */
 void opcontrol() {
-  liftEnc.reset_position();
-  lift.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-  wrist.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-  wrist.tare_position();
 
-  bool clawFwd = false;
-  bool clawRev = false;
+    //reset lift and wrist to 0 degrees
+    liftEnc.reset_position();
+    wrist.tare_position();
+    //set assembly motors to lock position when not moving
+    lift.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+    wrist.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+
+    bool clawFwd = false;
+    bool clawRev = false;
 
   // controller
   // loop to continuously update motors
@@ -211,6 +223,7 @@ void opcontrol() {
     // delay to save resources
     pros::delay(10);
 
+    //intake control - L1 for intake, L2 for outtake, otherwise stop (no lock)
     if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {
       intake.move(85);
     } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
@@ -219,6 +232,7 @@ void opcontrol() {
       intake.move(0);
     }
 
+    //lift control - R1/R2 for slow lift, left/right for fast lift, otherwise stop (lock)
     if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1) and
         liftEnc.get_position() < 200000) {
       lift.move(60);
@@ -235,6 +249,7 @@ void opcontrol() {
       lift.move_velocity(0);
     }
 
+    //double toggle for claw control - A for forward, B for reverse, otherwise stop (no lock) (it's janky!)
     if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A)) {
         if (!clawFwd and !clawRev) {
             clawFwd = true;
@@ -251,6 +266,7 @@ void opcontrol() {
         }
     }
 
+    //move the claw based on the toggle state
     if (clawFwd) {
       claw.move(127);
     } else if (clawRev) {
@@ -259,6 +275,7 @@ void opcontrol() {
       claw.move(0);
     }
 
+    //wrist control - up for forward, down for reverse, otherwise stop (lock)
     if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_UP)) {
       wrist.move(60);
     } else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN)) {
@@ -267,6 +284,7 @@ void opcontrol() {
       wrist.move_velocity(0);
     }
 
+    //goal height macro - X button for goal height 17000 (in centidegrees)
     if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_X)) {
       while (liftEnc.get_position() < 17000) {
         lift.move(90);
