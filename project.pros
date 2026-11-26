@@ -653,7 +653,9 @@
     },
     "upload_options": {
       "slot": 2,
-      "icon": "robot"
+      "icon": "power",
+      "after": "run",
+      "description": ""
     },
     "use_early_access": false
   }
