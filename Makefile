@@ -46,6 +46,11 @@ TEMPLATE_FILES=$(INCDIR)/$(LIBNAME)/*.h $(INCDIR)/$(LIBNAME)/*.hpp
 ########## Nothing below this line should be edited by typical users ###########
 -include ./common.mk
 
+# Force LVGL integration into monolithic simulator builds
+ifeq ($(USE_PACKAGE),0)
+LDFLAGS += -Wl,--whole-archive $(FWDIR)/liblvgl.a -Wl,--no-whole-archive
+endif
+
 LEMLIB_TARBALL_SOURCE := libsrc/LemLibTarball.cpp
 LEMLIB_TARBALL_OBJECT := $(BINDIR)/LemLibTarball.cpp.o
 LEMLIB_TARBALL_DEPENDENCY := $(DEPDIR)/LemLibTarball.cpp.d
