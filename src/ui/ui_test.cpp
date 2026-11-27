@@ -1,7 +1,7 @@
 
 #include "liblvgl/lvgl.h"
 #include "main.h"
-
+#include "ui.hpp"
 
 static int count = 0;
 
@@ -62,7 +62,7 @@ static void create_button(lv_obj_t *parent, const char *text, uint32_t color,
 }
 
 // Main UI initialization
-void init_test_ui() {
+void ui::init_test_ui() {
   lv_obj_t *screen = lv_screen_active();
 
   lv_obj_clean(screen);
