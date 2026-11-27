@@ -25,7 +25,7 @@ void robot::init();
  */
 
 void initialize() {
-  ui::init_test_ui();     // run ui_test.cpp
+  ui::ui();
 }
 
 /**
