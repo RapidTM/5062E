@@ -51,17 +51,3 @@ ifeq ($(USE_PACKAGE),0)
 LDFLAGS += -Wl,--whole-archive $(FWDIR)/liblvgl.a -Wl,--no-whole-archive
 endif
 
-LEMLIB_TARBALL_SOURCE := libsrc/LemLibTarball.cpp
-LEMLIB_TARBALL_OBJECT := $(BINDIR)/LemLibTarball.cpp.o
-LEMLIB_TARBALL_DEPENDENCY := $(DEPDIR)/LemLibTarball.cpp.d
-LEMLIB_TARBALL_ARCHIVE := $(FWDIR)/LemLibTarball.a
-
-$(LEMLIB_TARBALL_OBJECT): $(LEMLIB_TARBALL_SOURCE)
-	$(VV)mkdir -p $(BINDIR) $(DEPDIR)
-	$(CXX) -c $(CXXFLAGS) $(EXTRA_CXXFLAGS) -I$(INCDIR) -MMD -MP -MF $(LEMLIB_TARBALL_DEPENDENCY) -MT $@ -o $@ $<
-
-$(LEMLIB_TARBALL_ARCHIVE): $(LEMLIB_TARBALL_OBJECT)
-	$(RM) $@
-	$(AR) rcs $@ $<
-
--include $(LEMLIB_TARBALL_DEPENDENCY)
