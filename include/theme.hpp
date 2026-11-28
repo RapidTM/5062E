@@ -4,9 +4,9 @@
 namespace ui::theme {
 
 namespace color {
-    constexpr uint32_t background = 0x101820;
+    constexpr uint32_t background = 0x141414;
     constexpr uint32_t text = 0xFFFFFF;
-    constexpr uint32_t primary = 0x821436;
+    constexpr uint32_t primary = 0xff0051;
     constexpr uint32_t success = 0x42D392;
     constexpr uint32_t error = 0xC43E3E;
     constexpr uint32_t neutral = 0x505966;
