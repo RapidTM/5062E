@@ -1,7 +1,7 @@
 #ifndef EEZ_LVGL_UI_STYLES_H
 #define EEZ_LVGL_UI_STYLES_H
 
-#include <liblvgl/lvgl.h>
+#include <lvgl_compat.h>
 
 #ifdef __cplusplus
 extern "C" {

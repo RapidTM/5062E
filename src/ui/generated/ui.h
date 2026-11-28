@@ -1,7 +1,7 @@
 #ifndef EEZ_LVGL_UI_GUI_H
 #define EEZ_LVGL_UI_GUI_H
 
-#include <liblvgl/lvgl.h>
+#include <lvgl_compat.h>
 
 #include "screens.h"
 

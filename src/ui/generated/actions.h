@@ -1,7 +1,7 @@
 #ifndef EEZ_LVGL_UI_EVENTS_H
 #define EEZ_LVGL_UI_EVENTS_H
 
-#include <liblvgl/lvgl.h>
+#include <lvgl_compat.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -13,8 +13,8 @@ SRCDIR=$(ROOT)/src
 INCDIR=$(ROOT)/include
 
 WARNFLAGS+=
-EXTRA_CFLAGS=
-EXTRA_CXXFLAGS=
+EXTRA_CFLAGS=-I"$(INCDIR)"
+EXTRA_CXXFLAGS=-I"$(INCDIR)"
 
 # Set to 1 to enable hot/cold linking
 USE_PACKAGE:=1
@@ -50,4 +50,3 @@ TEMPLATE_FILES=$(INCDIR)/$(LIBNAME)/*.h $(INCDIR)/$(LIBNAME)/*.hpp
 ifeq ($(USE_PACKAGE),0)
 LDFLAGS += -Wl,--whole-archive $(FWDIR)/liblvgl.a -Wl,--no-whole-archive
 endif
-
