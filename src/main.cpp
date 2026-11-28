@@ -1,7 +1,7 @@
 #include "main.h"
 #include "comp.hpp"
 #include "lemlib/api.hpp" // IWYU pragma: keep
-#include "ui.hpp"
+#include "ui/ui.hpp"
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
